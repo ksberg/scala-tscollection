@@ -38,8 +38,6 @@ trait SeriesArray[A] extends BaseSeries[A] {
   def cursorMax = Int.MaxValue
 }
 
-trait RightSeriesArray[A] extends RightSeries[A] {}
-trait LeftSeriesArray[A] extends LeftSeries[A] {}
 
 
 abstract class BaseSeriesArrayRef[A](indata: IndexedSeq[A], protected var idx: Int = 0) 

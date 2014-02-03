@@ -69,16 +69,5 @@ class Test4LeftRing extends FlatSpec with ShouldMatchers {
     assert(larr.reverse === arr.tail)
   }
   
-  it should "be assignable and manipulated from common Series type" in {
-    val capacity = 5
-    var series : LeftSeries[Int] = null
-    series = new LeftRing[Int](capacity)
-    series += 1
-    series ++= Array(1,2,3,4,5,6)
-    assert(series.size === capacity)
-    assert(series.head === 6)
-    assert(series.last === 2)
-  }
-  
 
 }

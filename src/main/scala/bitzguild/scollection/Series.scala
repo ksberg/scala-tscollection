@@ -60,32 +60,28 @@ trait LeftRightSeries[A] {
 
 // ------------------------------------------------------------------
 
-trait RightSeries[A] extends BaseSeries[A] 
-						with LeftRightSeries[A] 
-						with MutableSeries[A] {
+trait RightSeries[A] extends BaseSeries[A] {
   def zeroIsLast = false
+}
+
+trait LeftSeries[A]	extends BaseSeries[A]{
+  def zeroIsLast = true
+}
+
+trait RightSeriesStore[A] extends RightSeries[A] with MutableSeries[A] {
   def length = data.length
   def view(offset: Int) : SeriesRef[A]
 }
 
-trait LeftSeries[A]	extends BaseSeries[A]
-						with LeftRightSeries[A] 
-						with MutableSeries[A] {
-  def zeroIsLast = true
+trait LeftSeriesStore[A] extends LeftSeries[A] with MutableSeries[A] {
   def length = data.length
   def view(offset: Int) : SeriesRef[A]
 }
 
 // ------------------------------------------------------------------
 
-trait RightSeriesRef[A] extends SeriesRef[A] with LeftRightSeries[A] {
-  def zeroIsLast = false
-} 
-
-trait LeftSeriesRef[A] extends SeriesRef[A] with LeftRightSeries[A] {
-  def zeroIsLast = true
-}
-
+trait RightSeriesRef[A] extends RightSeries[A] with SeriesRef[A]
+trait LeftSeriesRef[A] extends LeftSeries[A] with SeriesRef[A]  
 
 
 

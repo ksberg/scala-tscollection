@@ -5,6 +5,7 @@
 .settings
 .cache
 .classpath
+.metadata
 
 target
 project/target

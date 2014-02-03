@@ -41,8 +41,8 @@ import scala.collection.mutable.ArrayBuffer
  * def latest(n: Int) : RightRingBuffer[A] 
  * ... slice view of last added, especially useful for look-back function calculations
  */
-trait RightRingBuffer[A] extends SeriesRing[A] with RightSeries[A] {}
-trait LeftRingBuffer[A]  extends SeriesRing[A] with LeftSeries[A] {}
+trait RightRingBuffer[A] extends SeriesRing[A] with RightSeriesStore[A] {}
+trait LeftRingBuffer[A]  extends SeriesRing[A] with LeftSeriesStore[A] {}
 
  /**
   * Abstract Ring Buffer base class

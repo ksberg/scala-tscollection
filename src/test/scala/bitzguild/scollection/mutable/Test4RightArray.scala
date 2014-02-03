@@ -44,16 +44,4 @@ class Test4RightArray extends FlatSpec with ShouldMatchers {
     assert(ring.toArray === arr)
   }
     
-  it should "be assignable and manipulated from common Series type" in {
-    val capacity = 5
-    val arr = Array(1,2,3,4,5,6)
-    var series : RightSeries[Int] = null
-    series = new RightArray[Int]()
-    series += 1
-    series ++= arr
-    assert(series.size === arr.size + 1)
-    assert(series.head === 1)
-    assert(series.last === 6)
-  }
-
 }

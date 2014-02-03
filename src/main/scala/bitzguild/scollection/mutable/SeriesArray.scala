@@ -35,6 +35,9 @@ import bitzguild.scollection._
 import scala.collection.mutable.ArrayBuffer
 
 
+trait RightSeriesArray[A] extends SeriesArray[A] with RightSeriesStore[A]
+trait LeftSeriesArray[A] extends SeriesArray[A] with LeftSeriesStore[A]
+
  /**
   * Abstract Array base class
   *
