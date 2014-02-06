@@ -32,56 +32,108 @@
  package bitzguild.scollection
 
 import scala.collection.IndexedSeq
+import scala.collection.mutable.ArrayBuffer
 
 object SeriesDefaults {
    var capacity = 3
 }
 
-trait BaseSeries[A] extends IndexedSeq[A] {
-  def cursor : Int
-  protected def cursorMax : Int
-  protected def cursorToLeft(i: Int)	= if (i == 0) cursorMax else i - 1  
-  protected def cursorToRight(i: Int) = if (i == cursorMax) 0 else i + 1
-  protected def data : collection.IndexedSeq[A]	
-}
- 
-trait MutableSeries[A] {
-  def +=(elem: A): MutableSeries[A]
-  def ++=(col: Traversable[A]) : MutableSeries[A]
+// ------------------------------------------------------------------------------------
+// These work as intended ...
+// ------------------------------------------------------------------------------------
+
+trait LeftSeq[A] extends IndexedSeq[A]
+trait LeftView[A] extends LeftSeq[A] {
+  def next : LeftView[A]
+  def hasNext : Boolean
 }
 
-trait SeriesRef[A] extends BaseSeries[A]{
-  def next : SeriesRef[A]
+
+
+class RView[A](val data: IndexedSeq[A], val offset: Int, len: Int) extends IndexedSeq[A] {
+  def length = len
+  def apply(index: Int) = data(offset + index)
 }
 
-trait LeftRightSeries[A] {
-  def zeroIsLast : Boolean
-}
 
-// ------------------------------------------------------------------
-
-trait RightSeries[A] extends BaseSeries[A] {
-  def zeroIsLast = false
-}
-
-trait LeftSeries[A]	extends BaseSeries[A]{
-  def zeroIsLast = true
-}
-
-trait RightSeriesStore[A] extends RightSeries[A] with MutableSeries[A] {
+/**
+ * This is a immutable participant
+ */
+class LeftWrap[A](data: IndexedSeq[A]) extends collection.immutable.IndexedSeq[A] {
   def length = data.length
-  def view(offset: Int) : SeriesRef[A]
+  def apply(i: Int) = data(data.size - i - 1 % data.size)
+//  def view(lookback: Int) = new LAView(data,data.size-1,lookback,data.size)
 }
 
-trait LeftSeriesStore[A] extends LeftSeries[A] with MutableSeries[A] {
+
+/**
+ * Variable size array. Grows only by appending elements. Index zero represents
+ * last element added and positive indices from zero access earlier elements.
+ */
+class LeftArray[A]() extends collection.immutable.IndexedSeq[A] with LeftSeq[A] {
+  
+	class LeftArrayView[A](val data: IndexedSeq[A], val offset: Int, lookback: Int, val capturesize : Int) extends LeftView[A] {
+	  def length = lookback
+	  def apply(index: Int) = data(Math.max(0,Math.min(data.size-1,data.size - capturesize + index)))
+	  def next = if(capturesize == data.size) this else new LeftArrayView(data,offset,lookback,capturesize+1)
+	  def hasNext = (capturesize != data.size)
+	}
+  
+  val arrdata = new collection.mutable.ArrayBuffer[A]()
+  def length = arrdata.length
+  def apply(i: Int) = arrdata((size - i - 1) % size)
+  def +=(elem: A): this.type = {
+    arrdata += elem
+    this
+  }
+  def ++=(col: Traversable[A]) : this.type = { col.foreach(e => this += e); this }
+  def another = new LeftArray[A]()
+  def view(lookback: Int) = new LeftArrayView(this,0,lookback,arrdata.size)
+}
+
+/**
+ * Fixed-size recycling storage buffer. Grows only by appending elements. Index zero represents
+ * last element added and positive indices from zero access earlier elements.
+ */
+class LeftRing[A](val capacity: Int = 5) extends collection.immutable.IndexedSeq[A] with LeftSeq[A] {
+  
+	class LeftRingView[A](ring: LeftRing[A], lookback: Int, val cursor: Int) extends collection.immutable.IndexedSeq[A] with LeftView[A] {
+	  protected lazy val cmax =(Int.MaxValue / ring.capacity) * ring.capacity - ring.capacity
+	  def data = ring.data
+	  def length = lookback
+	  def apply(i: Int) = data((cursor + i) % data.size)
+	  def next = if (cursor == ring.cursor) this else new LeftRingView[A](ring,lookback, ring.cursorToLeft(cursor))
+	  def hasNext = (cursor != ring.cursor)
+	}
+  
+  protected val cmax = (Int.MaxValue / capacity) * capacity - capacity
+  protected var idx = cmax
+  protected def cursorToLeft(i: Int)	= if (i == 0) cmax else i - 1  
+  protected def assignAndShift(elem: A) = { idx = cursorToLeft(idx); data(idx % capacity) = elem } 
+  protected def cursor = idx
+
+  val data = new ArrayBuffer[A]()
   def length = data.length
-  def view(offset: Int) : SeriesRef[A]
+  def apply(i: Int) = data((idx + i) % data.size)
+  def +=(elem: A): this.type = {
+    if (size < capacity) for (i <- 1 to capacity) data += elem
+    else assignAndShift(elem)
+    this
+  }
+  def ++=(col: Traversable[A]) : this.type = { col.foreach(e => this += e); this }
+  def view(lookback: Int) = new LeftRingView(this,lookback,cursor)
 }
 
-// ------------------------------------------------------------------
 
-trait RightSeriesRef[A] extends RightSeries[A] with SeriesRef[A]
-trait LeftSeriesRef[A] extends LeftSeries[A] with SeriesRef[A]  
+
+
+
+class Guard[A](indata: IndexedSeq[A]) extends IndexedSeq[A] {
+  def data = indata 	
+  def length = indata.length
+  def apply(i: Int) = indata(Math.max(0,Math.min(i,indata.size-1)))
+}
+
 
 
 

@@ -6,8 +6,7 @@ import org.scalatest.matchers.ShouldMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import bitzguild.scollection.LeftSeries
-import bitzguild.scollection.mutable._
+import bitzguild.scollection._
 
 @RunWith(classOf[JUnitRunner])
 class Test4LeftRing extends FlatSpec with ShouldMatchers {

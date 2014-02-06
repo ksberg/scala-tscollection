@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2001-2014, Kevin Sven Berg. All rights reserved.
  *
- * This package is part of the Bitzguild Collection Distribution
+ * This package is part of the Bitzguild Distribution
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,26 +29,54 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package bitzguild.scollection
+package stuff
 
-import scala.collection.IndexedSeq
+import scala.collection.mutable.ArrayBuffer
 
+trait OldCursorSeq[A] extends IndexedSeq[A] {
+//  def cursor : Long
+  def next : OldCursorSeq[A]
+  def data : collection.IndexedSeq[A]
+  def length = data.length
+  def view(offset: Int) : OldCursorSeq[A]
+  def flip : OldCursorSeq[A]
+}
 
-trait SeriesArray[A] extends BaseSeries[A] {
-  def cursorMax = Int.MaxValue
+abstract class BaseCursorWrap[A](val indata: IndexedSeq[A], offset: Long = 0L) extends OldCursorSeq[A] {
+  protected var idx = offset
+  def next = { shiftRight; this }
+  def data = indata
+  protected def shiftRight = { idx = (idx + 1) % data.size } 
 }
 
 
 
-abstract class BaseSeriesArrayRef[A](indata: IndexedSeq[A], protected var idx: Int = 0) 
-				extends collection.immutable.IndexedSeq[A]  {
-  protected def data = indata
-  override def length = idx
-  override def size = idx
-  def cursor = idx
-  def cursorMax = Int.MaxValue
+
+
+class Wrap[A](indata: IndexedSeq[A], offset: Long = 0L) extends BaseCursorWrap[A](indata,offset) {
+  def apply(index: Int) = data(index)
+  def view(offset: Int) = new Wrap(indata,idx+offset)
+  def flip = 
+    if (data.isInstanceOf[Flip[A]]) data.asInstanceOf[OldCursorSeq[A]]
+    else new Flip(indata,idx)
+//  def +=(elem: A): this.type = {
+//    indata += elem
+//    this
+//  }
 }
 
+class Flip[A](in: IndexedSeq[A], offset: Long = 0L) extends BaseCursorWrap[A](in,offset) {
+  def apply(i: Int) = data(data.size - i - 1 % data.size)
+  def view(offset: Int) = new Flip(indata,idx+offset)
+  def flip = 
+    if (data.isInstanceOf[Wrap[A]]) data.asInstanceOf[OldCursorSeq[A]]
+    else new Wrap(indata,idx)
+}
+
+class RView[A](val data: IndexedSeq[A], val offset: Int, len: Int) extends IndexedSeq[A] {
+  def length = len
+  def apply(index: Int) = data(offset + index)
+}
 
 
 
