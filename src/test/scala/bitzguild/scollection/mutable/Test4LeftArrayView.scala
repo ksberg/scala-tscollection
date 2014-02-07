@@ -14,6 +14,14 @@ class Test4LeftArrayView extends FlatSpec with ShouldMatchers {
   
   behavior of "LeftArrayView"
   
+  it should "print when parent is empty" in {
+    val s = new LeftArray[Int]()
+    val v = s.view(5)
+    val rep = v.toString
+    rep should include ("Left")
+    rep should include ("()")
+  }
+  
   it should "should facilitate endpoint overlap (index beyond bounds)" in {
     val series = new LeftArray[Int]()
     series += 1

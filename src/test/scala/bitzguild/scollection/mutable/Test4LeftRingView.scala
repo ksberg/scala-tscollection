@@ -13,6 +13,15 @@ class Test4LeftRingView extends FlatSpec with ShouldMatchers {
   
   behavior of "LeftRingView"
   
+  it should "print when parent is empty" in {
+    val s = new LeftRing[Int]()
+    val v = s.view(5)
+    val rep = v.toString
+    rep should include ("Left")
+    rep should include ("()")
+  }
+  
+  
   it should "should facilitate endpoint overlap (index beyond bounds)" in {
     val series = new LeftRing[Int](3)
     series += 1

@@ -85,6 +85,7 @@ abstract class LeftInnerView[A](val parent: MutableLeftSeq[A], lookback: Int, va
   def another = parent.another
   def length = lookback
   def view(lookback: Int) = parent.view(lookback)
+  override def toString = if(parent.size == 0) "LeftView()" else super.toString
 }
 
 
