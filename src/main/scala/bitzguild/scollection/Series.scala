@@ -33,19 +33,15 @@
 
 import scala.collection.{immutable, GenSeq, IndexedSeq}
 import scala.collection.mutable.ArrayBuffer
- import scala.collection.generic.CanBuildFrom
-
- object SeriesDefaults {
-   var capacity = 3
-}
+import scala.collection.generic.CanBuildFrom
 
 // ------------------------------------------------------------------------------------
-// These work as intended ...
+// LeftSeq Interface
 // ------------------------------------------------------------------------------------
 
 trait LeftSeq[A] extends IndexedSeq[A] {
   def view(lookback: Int) : LeftView[A]
-  def another : LeftSeq[A]
+  def another : MutableLeftSeq[A]
 }
 
 trait LeftView[A] extends LeftSeq[A] {
@@ -59,9 +55,11 @@ trait MutableLeftSeq[A] extends LeftSeq[A] {
 }
 
 
+// ------------------------------------------------------------------------------------
+// LeftSeq Implementations
+// ------------------------------------------------------------------------------------
 
-
-
+// not one ...
 class RView[A](val data: IndexedSeq[A], val offset: Int, len: Int) extends IndexedSeq[A] {
   def length = len
   def apply(index: Int) = data(offset + index)
@@ -79,34 +77,16 @@ class LeftWrap[A](data: IndexedSeq[A]) extends collection.immutable.IndexedSeq[A
 //  def view(lookback: Int) = new LAView(data,data.size-1,lookback,data.size)
 }
 
-
 /**
- * Variable size array. Grows only by appending elements. Index zero represents
- * last element added and positive indices from zero access earlier elements.
+ * Common behavior and data between different left view implementations
  */
-class LeftArray[A]() extends collection.immutable.IndexedSeq[A] with MutableLeftSeq[A] {
-  
-	class LeftArrayView[A](val parent: LeftArray[A], val offset: Int, lookback: Int, val capturesize : Int) extends LeftView[A] {
-	  def length = lookback
-	  def apply(index: Int) = parent(Math.max(0,Math.min(parent.size-1,parent.size - capturesize + index)))
-	  def next = if(capturesize == parent.size) this else new LeftArrayView(parent,offset,lookback,capturesize+1)
-	  def hasNext = (capturesize != parent.size)
-	  
-	  def view(lookback: Int) = parent.view(lookback)
-	  def another = parent.another
-	}
-  
-  val arrdata = new collection.mutable.ArrayBuffer[A]()
-  def length = arrdata.length
-  def apply(i: Int) = arrdata((size - i - 1) % size)
-  def +=(elem: A): this.type = {
-    arrdata += elem
-    this
-  }
-  def ++=(col: Traversable[A]) : this.type = { col.foreach(e => this += e); this }
-  def another = new LeftArray[A]()
-  def view(lookback: Int) = new LeftArrayView(this,0,lookback,arrdata.size)
+abstract class LeftInnerView[A](val parent: MutableLeftSeq[A], lookback: Int, val marker : Int) extends LeftView[A] {
+  protected var csize = marker
+  def another = parent.another
+  def length = lookback
+  def view(lookback: Int) = parent.view(lookback)
 }
+
 
 /**
  * Fixed-size recycling storage buffer. Grows only by appending elements. Index zero represents
@@ -114,22 +94,11 @@ class LeftArray[A]() extends collection.immutable.IndexedSeq[A] with MutableLeft
  */
 class LeftRing[A](val capacity: Int = 5) extends collection.immutable.IndexedSeq[A] with MutableLeftSeq[A] {
   
-	class LeftRingView[A](val parent: LeftRing[A], lookback: Int, val cursor: Int) extends collection.immutable.IndexedSeq[A] with LeftView[A] {
-	  protected lazy val cmax =(Int.MaxValue / parent.capacity) * parent.capacity - parent.capacity
+  class LeftRingView[A](parent: LeftRing[A], lookback: Int, cursor: Int) extends LeftInnerView[A](parent,lookback,cursor) {
 	  def data = parent.data
-	  def length = lookback
-	  def apply(i: Int) = data((cursor + i) % data.size)
-	  def next = if (cursor == parent.cursor) this else new LeftRingView[A](parent,lookback, parent.cursorToLeft(cursor))
-	  def hasNext = (cursor != parent.cursor)
-	  def view(lookback: Int) = parent.view(lookback)
-	  def another = parent.another
-
-//    def updated[B >: A, That](index: Int, elem: B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]): That = ???
-//    def reverseMap[B, That](f: (A) => B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]): That = ???
-//    def patch[B >: A, That](from: Int, patch: GenSeq[B], replaced: Int)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]): That = ???
-//    def +:[B >: A, That](elem: B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]): That = ???
-//    def :+[B >: A, That](elem: B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]): That = ???
-//    def padTo[B >: A, That](len: Int, elem: B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]): That = ???
+	  def apply(i: Int) = data((csize + i) % data.size)
+	  def next = if (hasNext) { csize = csize-1; this } else this
+	  def hasNext = (csize != parent.cursor)
   }
   
   protected val cmax = (Int.MaxValue / capacity) * capacity - capacity
@@ -154,21 +123,28 @@ class LeftRing[A](val capacity: Int = 5) extends collection.immutable.IndexedSeq
 
 
 
-
-class Guard[A](indata: IndexedSeq[A]) extends IndexedSeq[A] {
-  def data = indata 	
-  def length = indata.length
-  def apply(i: Int) = indata(Math.max(0,Math.min(i,indata.size-1)))
-
-//  def reverseMap[B, That](f: (A) => B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = ???
-//  def patch[B >: A, That](from: Int, patch: GenSeq[B], replaced: Int)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = ???
-//  def updated[B >: A, That](index: Int, elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = ???
-//  def +:[B >: A, That](elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = ???
-//  def :+[B >: A, That](elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = ???
-//  def padTo[B >: A, That](len: Int, elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = ???
+/**
+ * Variable size array. Grows only by appending elements. Index zero represents
+ * last element added and positive indices from zero access earlier elements.
+ */
+class LeftArray[A]() extends collection.immutable.IndexedSeq[A] with MutableLeftSeq[A] {
+  
+	class LeftArrayView[A](parent: LeftArray[A], val offset: Int, lookback: Int, capturesize : Int) extends LeftInnerView[A](parent,lookback,capturesize) {
+	  def apply(index: Int) = parent(Math.max(0,Math.min(parent.size-1,parent.size - csize + index)))
+	  def hasNext = (csize != parent.size)
+	  def next = if (hasNext) { csize = csize+1; this } else this
+	}
+  
+  val arrdata = new collection.mutable.ArrayBuffer[A]()
+  def length = arrdata.length
+  def apply(i: Int) = arrdata((size - i - 1) % size)
+  def +=(elem: A): this.type = {
+    arrdata += elem
+    this
+  }
+  def ++=(col: Traversable[A]) : this.type = { col.foreach(e => this += e); this }
+  def another = new LeftArray[A]()
+  def view(lookback: Int) = new LeftArrayView(this,0,lookback,arrdata.size)
 }
-
-
-
 
 

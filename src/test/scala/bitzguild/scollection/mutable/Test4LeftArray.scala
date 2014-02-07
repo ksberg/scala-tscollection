@@ -44,33 +44,4 @@ class Test4LeftArray extends FlatSpec with ShouldMatchers {
     assert(ring.toArray.reverse === arr)
   }
   
-  it should "have empty view at create time" in {
-    val series = new LeftArray[Int]()
-    val ref = series.view(0);
-    assert(ref.size === 0)
-  }
-  
-//  it should "match view and source cursor on view create" in {
-//    val series = new LeftArray[Int]()
-//    series ++= Array(1,2,3)
-//    val ref = series.view(0)
-//    assert(ref.cursor === series.cursor)
-//  }
-  
-//  it should "increment separately from view " in {
-//    val series = new LeftArray[Int]()
-//    series ++= Array(1,2,3)
-//    val ref = series.view(0)
-//    series += 1
-//    assert(ref.cursor < series.cursor)
-//  }
-  
-//  it should "throw exception on negative index" in {
-//    val series = new LeftArray[Int]()
-//    series ++= Array(1,2,3)
-//    intercept[IndexOutOfBoundsException] {
-//      series(-1)
-//    }
-//  }
-  
 }

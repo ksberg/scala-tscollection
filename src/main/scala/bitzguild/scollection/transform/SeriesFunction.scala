@@ -21,8 +21,9 @@ abstract class LeftFunctionCache[A: Numeric](
   }
   def apply(index: Int) = {
     while(dview.hasNext) {
+      cache += cacheFunction(dview.next)
     }
-    cache(index)	// NOT!
+    cache(index)
   }
   
   // prevent ops
