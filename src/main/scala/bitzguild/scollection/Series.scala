@@ -42,8 +42,14 @@ object SeriesDefaults {
 // These work as intended ...
 // ------------------------------------------------------------------------------------
 
-trait LeftSeq[A] extends IndexedSeq[A]
-trait LeftView[A] extends LeftSeq[A] {
+trait LeftSeq[A] extends IndexedSeq[A] {
+  def +=(elem: A): LeftSeq[A]
+  def ++=(col: Traversable[A]) : LeftSeq[A]
+  def view(lookback: Int) : LeftView[A]
+  def another : LeftSeq[A]
+}
+
+trait LeftView[A] extends IndexedSeq[A] {
   def next : LeftView[A]
   def hasNext : Boolean
 }
@@ -122,6 +128,7 @@ class LeftRing[A](val capacity: Int = 5) extends collection.immutable.IndexedSeq
   }
   def ++=(col: Traversable[A]) : this.type = { col.foreach(e => this += e); this }
   def view(lookback: Int) = new LeftRingView(this,lookback,cursor)
+  def another = new LeftRing[A](capacity)
 }
 
 

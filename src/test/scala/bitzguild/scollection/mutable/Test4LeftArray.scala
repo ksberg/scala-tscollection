@@ -65,12 +65,12 @@ class Test4LeftArray extends FlatSpec with ShouldMatchers {
 //    assert(ref.cursor < series.cursor)
 //  }
   
-  it should "throw exception on negative index" in {
-    val series = new LeftArray[Int]()
-    series ++= Array(1,2,3)
-    intercept[IndexOutOfBoundsException] {
-      series(-1)
-    }
-  }
+//  it should "throw exception on negative index" in {
+//    val series = new LeftArray[Int]()
+//    series ++= Array(1,2,3)
+//    intercept[IndexOutOfBoundsException] {
+//      series(-1)
+//    }
+//  }
   
 }
