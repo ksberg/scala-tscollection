@@ -21,3 +21,6 @@ scalacOptions ++= Seq(
   // "-optimise"   // this option will slow your build
 )
 
+addCommandAlias("unit", "testOnly unit.*Spec")
+
+addCommandAlias("integration", "testOnly integration.*Spec")

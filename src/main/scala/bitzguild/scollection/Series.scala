@@ -40,6 +40,7 @@ import scala.collection.generic.CanBuildFrom
 // ------------------------------------------------------------------------------------
 
 trait LeftSeq[A] extends IndexedSeq[A] {
+  def firstView(lookback: Int) : LeftView[A]
   def view(lookback: Int) : LeftView[A]
   def another : MutableLeftSeq[A]
 }
@@ -58,12 +59,6 @@ trait MutableLeftSeq[A] extends LeftSeq[A] {
 // ------------------------------------------------------------------------------------
 // LeftSeq Implementations
 // ------------------------------------------------------------------------------------
-
-// not one ...
-class RView[A](val data: IndexedSeq[A], val offset: Int, len: Int) extends IndexedSeq[A] {
-  def length = len
-  def apply(index: Int) = data(offset + index)
-}
 
 
 /**
@@ -85,6 +80,7 @@ abstract class LeftInnerView[A](val parent: MutableLeftSeq[A], lookback: Int, va
   def another = parent.another
   def length = lookback
   def view(lookback: Int) = parent.view(lookback)
+  def firstView(lookback: Int) = parent.firstView(lookback)
   override def toString = if(parent.size == 0) "LeftView()" else super.toString
 }
 
@@ -117,8 +113,9 @@ class LeftRing[A](val capacity: Int = 5) extends collection.immutable.IndexedSeq
     this
   }
   def ++=(col: Traversable[A]) : this.type = { col.foreach(e => this += e); this }
-  def view(lookback: Int) = new LeftRingView(this,lookback,cursor)
   def another = new LeftRing[A](capacity)
+  def view(lookback: Int) = new LeftRingView(this,lookback,cursor)
+  def firstView(lookback: Int) = new LeftRingView(this,lookback,cmax)
 }
 
 
@@ -146,6 +143,7 @@ class LeftArray[A]() extends collection.immutable.IndexedSeq[A] with MutableLeft
   def ++=(col: Traversable[A]) : this.type = { col.foreach(e => this += e); this }
   def another = new LeftArray[A]()
   def view(lookback: Int) = new LeftArrayView(this,0,lookback,arrdata.size)
+  def firstView(lookback: Int) = new LeftArrayView(this,0,lookback,0)
 }
 
 
