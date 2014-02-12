@@ -3,6 +3,7 @@ package bitzguild.scollection.function
 import bitzguild.scollection.LeftSeq
 import bitzguild.scollection.transform.LeftDoublesFunction
 import bitzguild.scollection.transform._
+import bitzguild.scollection.function.ExponentialMovingAverage
 
 /**
  * Highest value in the domain scoping length.
@@ -26,7 +27,10 @@ class Momentum(length: Int) extends LeftDoublesFunction {
   def apply(domain: LeftSeq[Double]) = domain(0) - domain(len)
 }
 
-
+/**
+ * Efficiency Ratio is a measure of signal to noise for a given series.
+ * Specifically, the ratio captures directionality of the underlying series.
+ */
 class EfficiencyRatio(val length: Int) extends LeftDoublesFunction {
   def init(domain: LeftSeq[Double]) = {}
   def apply(domain: LeftSeq[Double]) = {
@@ -38,6 +42,32 @@ class EfficiencyRatio(val length: Int) extends LeftDoublesFunction {
   }
 }
 
-object Measures {
+/**
+ * Standard Deviation function with an optional center point. The custom center point
+ * enables more accurate or faster-tracking averages to be used in the calculation.
+ * Default is to use the XMA (Exponential Moving Average) of the given length.
+ */
+class StandardDeviation(val length: Int, centerFn: Option[LeftDoublesFunction] = None) extends LeftDoublesFunction {
+  def sumSquares(domain: LeftSeq[Double], center: LeftSeq[Double]) : Double =
+    domain.zip(center).map(t => t._1 - t._2).map(x => x*x).foldLeft(0.0)(_+_)
+  var center : LeftSeq[Double] = null   
+  def init(domain: LeftSeq[Double]) = 
+    center = new LeftFunctionCache(domain, centerFn.getOrElse(new ExponentialMovingAverage(length)), length) 
+  def apply(domain: LeftSeq[Double]) = sumSquares(domain, center)/length
+}
 
+
+object Measures {
+  
+  def mean(d: Seq[Double]) = if (d.size == 0) 0.0 else d.sum / d.size
+  def median(d: Seq[Double]) : Double = {
+    val size = d.size
+    if (size > 1) {
+	    val s = d.sorted
+	    val mid = size / 2
+	    if (size % 2 == 1) s(mid) else (s(mid) + s(mid-1))/2
+    } else if (size > 0) d(0)
+    else 0.0
+  }
+  
 }
