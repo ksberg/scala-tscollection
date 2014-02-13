@@ -69,7 +69,6 @@ trait MutableLeftSeq[A] extends LeftSeq[A] {
 class LeftWrap[A](data: IndexedSeq[A]) extends collection.immutable.IndexedSeq[A] {
   def length = data.length
   def apply(i: Int) = data(data.size - i - 1 % data.size)
-//  def view(lookback: Int) = new LAView(data,data.size-1,lookback,data.size)
 }
 
 /**

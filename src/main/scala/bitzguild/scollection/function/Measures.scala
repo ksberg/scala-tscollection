@@ -3,7 +3,6 @@ package bitzguild.scollection.function
 import bitzguild.scollection.LeftSeq
 import bitzguild.scollection.transform.LeftDoublesFunction
 import bitzguild.scollection.transform._
-import bitzguild.scollection.function.ExponentialMovingAverage
 
 /**
  * Highest value in the domain scoping length.
