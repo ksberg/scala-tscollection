@@ -70,4 +70,5 @@ object Measures {
     else 0.0
   }
   
+  def efficiency(domain: LeftSeq[Double], length: Int) = new LeftFunctionCache(domain, new EfficiencyRatio(length), length)
 }
