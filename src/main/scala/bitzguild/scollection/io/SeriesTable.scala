@@ -53,8 +53,8 @@ class Table(var columns: Option[Array[Column]]) {
   
 
   def top(n: Int, ps: PrintStream = System.out) = render(n,ps," ",true)
-  def csv(ps: PrintStream) = render(size,ps,",",false) 
-  def tsv(ps: PrintStream) = render(size,ps,"\t",false)
+  def csv(ps: PrintStream = System.out) = render(size,ps,",",false) 
+  def tsv(ps: PrintStream = System.out) = render(size,ps,"\t",false)
   
 
   def render(n: Int, ps: PrintStream, separator: String, padded: Boolean) = page(0,n,ps,separator,padded)
@@ -75,40 +75,39 @@ class Table(var columns: Option[Array[Column]]) {
 abstract class BaseColumn[A](val name: String, val columnWidth: Int, val align: CellAlignment) extends Column {
   def renderName(padded: Boolean) = renderNameInto(new StringBuffer,padded).toString
   def renderValue(index: Int, padded: Boolean) : String = renderValueInto(index, new StringBuffer,padded).toString
+
   def renderNameInto(sb: StringBuffer, padded: Boolean) : StringBuffer = {
 	val iStart = sb.length(); sb.append(name)
-	if (padded) {
-		val iEnd = sb.length()
-		val iwidth = iEnd - iStart
-		val ipad = columnWidth - (iEnd - iStart)
-		if (iwidth <= columnWidth) pad(ipad,sb,iStart,iEnd)
-		else { sb.setLength(iStart + columnWidth - 3); sb.append("...") }
-	}
+    if (padded) pad(sb, iStart)
     sb
   }
   def renderValueInto(index: Int, sb: StringBuffer, padded: Boolean) : StringBuffer = {
 	val iStart = sb.length()
 	renderImpl(index, sb)
-	if (padded) {
-		val iEnd = sb.length();
-		val iwidth = iEnd - iStart;
-		val ipad = columnWidth - (iEnd - iStart);
-		if (iwidth <= columnWidth) pad(ipad,sb,iStart,iEnd)
-		else { sb.setLength(iStart + columnWidth - 3); sb.append("...") }
-	}
+    if (padded) pad(sb, iStart)
     sb
   }
-  def pad(pad: Int, sb: StringBuffer, start: Int, end: Int) = align match {
-    case AlignLeft()	=> for(i <- 1 to pad) sb.insert(end," ")
-    case AlignRight() 	=> for(i <- 1 to pad) sb.insert(start," ")
-    case AlignCenter() 	=> {
-		val ipadR = pad / 2;
-		val ipadL = pad - ipadR;
-		for(i <- 1 to ipadL) sb.insert(end," ")
-		for(i <- 1 to ipadR) sb.insert(start," ")
-    }
+  private def pad(sb: StringBuffer, start: Int): Any = {
+	val end = sb.length();
+	val width = end - start;
+	val pad = columnWidth - (end - start);
+	if (width <= columnWidth) {
+	  align match {
+	    case AlignLeft()	=> for(i <- 1 to pad) sb.insert(end," ")
+	    case AlignRight() 	=> for(i <- 1 to pad) sb.insert(start," ")
+	    case AlignCenter() 	=> {
+			val ipadR = pad / 2;
+			val ipadL = pad - ipadR;
+			for(i <- 1 to ipadL) sb.insert(end," ")
+			for(i <- 1 to ipadR) sb.insert(start," ")
+	    }
+	  }
+	}
+	else { sb.setLength(start + columnWidth - 3); sb.append("...") }
   }
+  
   protected def renderImpl(index: Int, sb: StringBuffer)
+  
 }
 
 class NumericColumn[N : Numeric](val series: LeftSeq[N], name: String, columnWidth: Int, align: CellAlignment)
