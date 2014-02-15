@@ -6,11 +6,10 @@ import org.scalatest.matchers.ShouldMatchers
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import bitzguild.scollection._
 
 @RunWith(classOf[JUnitRunner])
-class Test4LeftArray extends FlatSpec with ShouldMatchers {
+class LeftArraySpec extends FlatSpec with ShouldMatchers {
   
   behavior of "LeftArray"
   

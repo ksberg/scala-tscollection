@@ -18,7 +18,7 @@ trait Column {
   def renderValue(index: Int, padded: Boolean) : String 
 }
 
-case class Row(index: Int, columns: Array[Column], val padded : Boolean = true, val columnSeparator: String = " ") {
+case class Row(index: Int, columns: Array[Column], padded : Boolean = true, columnSeparator: String = " ") {
   def renderHeader = columns.map(c => c.renderName(padded)).reduce(_ + columnSeparator + _) 
   def renderRow = columns.map(c => c.renderValue(index,padded)).reduce(_ + columnSeparator + _)
   def next = new Row(index+1, columns, padded, columnSeparator)
@@ -64,6 +64,7 @@ class Table(var columns: Option[Array[Column]]) {
     val end = Math.min(start + chunk,last)
     ps.println(Row(0,columns.get,padded,separator).renderHeader)
     if (start < last) for(i <- start until end) ps.println((Row(i,columns.get,padded,separator)).toString)
+    else ps.println("... N/A ...")
   }
 
   def json(ps: PrintStream) = {

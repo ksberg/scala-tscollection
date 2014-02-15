@@ -9,7 +9,7 @@ import org.scalatest.junit.JUnitRunner
 import bitzguild.scollection._
 
 @RunWith(classOf[JUnitRunner])
-class Test4LeftRing extends FlatSpec with ShouldMatchers {
+class LeftRingSpec extends FlatSpec with ShouldMatchers {
   
   behavior of "LeftRing"
   

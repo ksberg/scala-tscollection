@@ -1,7 +1,6 @@
 package bitzguild.scollection.function
 
 import bitzguild.scollection.LeftSeq
-import bitzguild.scollection.transform.LeftDoublesFunction
 import bitzguild.scollection.transform._
 
 /**

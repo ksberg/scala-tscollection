@@ -1,7 +1,6 @@
 package bitzguild.scollection.function
 
 import bitzguild.scollection.{LeftSeq,LeftRing}
-import bitzguild.scollection.transform.LeftDoublesFunction
 import bitzguild.scollection.transform._
 
 /**
@@ -203,9 +202,9 @@ class MesaAdaptiveMovingAverage(val length: Int, fastLimit: Double = 0.5, slowLi
     mama = new LeftRing[Double](length)
   }
   def apply(domain: LeftSeq[Double]) = {
-    val periodFactor = (0.075*period1 + 0.54) 
+    val periodFactor = 0.075*period1 + 0.54
     val smooth = 4.0*domain(0) + 3.0*domain(1) + 2.0*domain(2) + domain(3)
-    smoothed += (smooth/10.0)
+    smoothed += smooth/10.0
     detrended += quad(smoothed(0),smoothed(2),smoothed(4),smoothed(6))*periodFactor
     
     // inphase and quadrature
