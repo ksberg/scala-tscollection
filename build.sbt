@@ -10,7 +10,8 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "com.google.inject" % "guice" % "3.0",
   "javax.inject" % "javax.inject" % "1",
-  "org.mockito" % "mockito-core" % "1.9.5" % "test"
+  "org.mockito" % "mockito-core" % "1.9.5" % "test",
+  "org.spire-math" %% "spire" % "0.7.3"
   )
 
 scalacOptions ++= Seq(

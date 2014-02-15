@@ -17,6 +17,18 @@ object LeftSeries {
 // LeftSeq Implementations
 // ------------------------------------------------------------------------------------
 
+//abstract class LeftAnnoyingAndUnused[A] extends scala.collection.IndexedSeq[A] {
+//  // Required implementation (for IntelliJ, not Eclipse or SBT) ... functional, but not optimal
+//  def reverseMap[B, That](f: (A) => B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = reverse.map(f)
+//  def updated[B >: A, That](index: Int, elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = toList.updated(index,elem)
+//  def +:[B >: A, That](elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = toList.+:(elem) //= toArray.+:(elem) _
+//  def :+[B >: A, That](elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = toList.:+(elem)
+//  def padTo[B >: A, That](len: Int, elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = toList.padTo(len,elem)
+//  def patch[B >: A, That](from: Int, patch: GenSeq[B], replaced: Int)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = {
+//    toList.patch(from,patch,replaced)
+//    asInstanceOf[That]
+//  }
+//}
 
 /**
  * Common behavior and data between different LeftView implementations
@@ -33,40 +45,7 @@ abstract class LeftInnerView[A](parent: MutableLeftSeq[A], lookback: Int, marker
   def view(lookback: Int) = parent.view(lookback)
   def firstView(lookback: Int) = parent.firstView(lookback)
   override def toString = if(parent.size == 0) "LeftView()" else super.toString
-
-  def reverseMap[B, That](f: (A) => B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = reverse.map(f)
-  def updated[B >: A, That](index: Int, elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = toList.updated(index,elem)
-  def +:[B >: A, That](elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = toList.+:(elem) //= toArray.+:(elem) _
-  def :+[B >: A, That](elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = toArray.:+ _
-  def padTo[B >: A, That](len: Int, elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = this.toArray.padTo _
-  def patch[B >: A, That](from: Int, patch: GenSeq[B], replaced: Int)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = {
-    toArray.patch(from,patch,replaced)
-    asInstanceOf[That]
-  }
 }
-
-
-
-/**
- * Common behavior for specialized LeftSeq implementations.
- * Implementation of these methods are required for concrete classes of IndexedSeq. The compile type
- * behavior differs for SBT, Eclipse, and IntelliJ; even after tweaking Idea settings to match SBT.
- * These methods produce copies of the original container.
- *
- * @tparam A element type
- */
-abstract class LeftOuterContainer[A] extends collection.immutable.IndexedSeq[A] {
-  override def reverseMap[B, That](f: (A) => B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]) = reverse.map(f).asInstanceOf[That]
-  override def patch[B >: A, That](from: Int, patch: GenSeq[B], replaced: Int)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]) = {
-    reverse.reverse.patch(from,patch,replaced)
-    asInstanceOf[That]
-  }
-  def updated[B >: A, That](index: Int, elem: B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]) = toList.updated _
-  def +:[B >: A, That](elem: B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]) = toArray[A].+: _
-  def :+[B >: A, That](elem: B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]) = toArray[A].:+ _
-  def padTo[B >: A, That](len: Int, elem: B)(implicit bf: CanBuildFrom[immutable.IndexedSeq[A], B, That]) = this.toArray.padTo _
-}
-
 
 
 
@@ -77,7 +56,7 @@ abstract class LeftOuterContainer[A] extends collection.immutable.IndexedSeq[A] 
  * @param capacity fixed capacity
  * @tparam A element type
  */
-class LeftRing[A](val capacity: Int = 5) extends LeftOuterContainer[A] with MutableLeftSeq[A] {
+class LeftRing[A](val capacity: Int = 5) extends MutableLeftSeq[A] {
 
   class LeftRingView[A](parent: LeftRing[A], lookback: Int, cursor: Int) extends LeftInnerView[A](parent,lookback,cursor) {
     def data = parent.data
@@ -116,7 +95,7 @@ class LeftRing[A](val capacity: Int = 5) extends LeftOuterContainer[A] with Muta
  *
  * @tparam A element type
  */
-class LeftArray[A]() extends LeftOuterContainer[A] with MutableLeftSeq[A] {
+class LeftArray[A]() extends MutableLeftSeq[A] {
 
   class LeftArrayView[A](parent: LeftArray[A], val offset: Int, lookback: Int, capturesize : Int) extends LeftInnerView[A](parent,lookback,capturesize) {
     def apply(index: Int) = parent(Math.max(0,Math.min(parent.size-1,parent.size - csize + index)))

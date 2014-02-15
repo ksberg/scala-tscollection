@@ -1,6 +1,7 @@
 package bitzguild.scollection.function
 
-import bitzguild.scollection.{LeftSeq,LeftRing}
+import bitzguild.scollection.LeftSeq
+import bitzguild.scollection.mutable.LeftRing
 import bitzguild.scollection.transform._
 
 /**
