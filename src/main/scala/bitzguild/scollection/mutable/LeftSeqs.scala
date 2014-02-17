@@ -5,9 +5,6 @@ import scala.collection.{immutable, GenSeq}
 import scala.collection.mutable.ArrayBuffer
 import bitzguild.scollection.{LeftView, MutableLeftSeq}
 
-/**
- * Created by ksvenberg on 2/14/14.
- */
 object LeftSeries {
 
 }
@@ -16,19 +13,6 @@ object LeftSeries {
 // ------------------------------------------------------------------------------------
 // LeftSeq Implementations
 // ------------------------------------------------------------------------------------
-
-//abstract class LeftAnnoyingAndUnused[A] extends scala.collection.IndexedSeq[A] {
-//  // Required implementation (for IntelliJ, not Eclipse or SBT) ... functional, but not optimal
-//  def reverseMap[B, That](f: (A) => B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = reverse.map(f)
-//  def updated[B >: A, That](index: Int, elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = toList.updated(index,elem)
-//  def +:[B >: A, That](elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = toList.+:(elem) //= toArray.+:(elem) _
-//  def :+[B >: A, That](elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = toList.:+(elem)
-//  def padTo[B >: A, That](len: Int, elem: B)(implicit bf: CanBuildFrom[GenSeq[A], B, That]) = toList.padTo(len,elem)
-//  def patch[B >: A, That](from: Int, patch: GenSeq[B], replaced: Int)(implicit bf: CanBuildFrom[GenSeq[A], B, That]): That = {
-//    toList.patch(from,patch,replaced)
-//    asInstanceOf[That]
-//  }
-//}
 
 /**
  * Common behavior and data between different LeftView implementations
@@ -45,6 +29,7 @@ abstract class LeftInnerView[A](parent: MutableLeftSeq[A], lookback: Int, marker
   def view(lookback: Int) = parent.view(lookback)
   def firstView(lookback: Int) = parent.firstView(lookback)
   override def toString = if(parent.size == 0) "LeftView()" else super.toString
+  override def size = lookback
 }
 
 
@@ -62,7 +47,10 @@ class LeftRing[A](val capacity: Int = 5) extends MutableLeftSeq[A] {
     def data = parent.data
     def apply(i: Int) = data((csize + i) % data.size)
     def next = if (hasNext) { csize = csize-1; this } else this
-    def hasNext = (csize != parent.cursor)
+    def hasNext = {
+      if (parent.size == 0) true
+      else (csize != parent.cursor)
+    }
   }
 
   protected val cmax = (Int.MaxValue / capacity) * capacity - capacity
@@ -75,7 +63,9 @@ class LeftRing[A](val capacity: Int = 5) extends MutableLeftSeq[A] {
   def length = data.length
   def apply(i: Int) = data((idx + i) % data.size)
   def +=(elem: A): this.type = {
-    if (size < capacity) for (i <- 1 to capacity) data += elem
+    if (size < capacity) {
+      for (i <- 1 to capacity) data += elem
+    }
     else assignAndShift(elem)
     this
   }
@@ -105,6 +95,7 @@ class LeftArray[A]() extends MutableLeftSeq[A] {
 
   val arrdata = new collection.mutable.ArrayBuffer[A]()
   def length = arrdata.length
+  override def size = arrdata.size
   def apply(i: Int) = arrdata((size - i - 1) % size)
   def +=(elem: A): this.type = {
     arrdata += elem

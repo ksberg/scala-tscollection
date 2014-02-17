@@ -19,6 +19,20 @@ class Lowest extends LeftDoublesFunction {
   def apply(domain: LeftSeq[Double]) = domain.min
 }
 
+/**
+ * Sum of elements over look back period
+ */
+class SumOverPeriod extends LeftDoublesFunction {
+  def init(domain: LeftSeq[Double]) = {}
+  def apply(domain: LeftSeq[Double]) = domain.sum
+}
+
+/**
+ * Difference between first and last element of period.
+ * Result indicates amount of movement up or down over period.
+ *
+ * @param length look back
+ */
 class Momentum(length: Int) extends LeftDoublesFunction {
   val len = length -1
   def init(domain: LeftSeq[Double]) = {}
@@ -28,6 +42,8 @@ class Momentum(length: Int) extends LeftDoublesFunction {
 /**
  * Efficiency Ratio is a measure of signal to noise for a given series.
  * Specifically, the ratio captures directionality of the underlying series.
+ *
+ * @param length look back period
  */
 class EfficiencyRatio(val length: Int) extends LeftDoublesFunction {
   def init(domain: LeftSeq[Double]) = {}
@@ -44,6 +60,9 @@ class EfficiencyRatio(val length: Int) extends LeftDoublesFunction {
  * Standard Deviation function with an optional center point. The custom center point
  * enables more accurate or faster-tracking averages to be used in the calculation.
  * Default is to use the XMA (Exponential Moving Average) of the given length.
+ *
+ * @param length look back period
+ * @param centerFn [optional] smoothing function
  */
 class StandardDeviation(val length: Int, centerFn: Option[LeftDoublesFunction] = None) extends LeftDoublesFunction {
   def sumSquares(domain: LeftSeq[Double], center: LeftSeq[Double]) : Double =

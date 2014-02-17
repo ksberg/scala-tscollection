@@ -13,6 +13,22 @@ class SimpleMovingAverage extends LeftDoublesFunction {
 }
 
 /**
+ * Simple Moving Average (with rolling sum)
+ */
+class SimpleMovingAverageR extends LeftDoublesFunction {
+  var sum = 0.0
+  var prior = 0.0
+  def init(domain: LeftSeq[Double]) = {
+    sum = domain.sum
+    prior = domain(domain.size-1)
+  }
+  def apply(domain: LeftSeq[Double]) = {
+    sum = sum + domain(0) - prior
+    sum / domain.size
+  }
+}
+
+/**
  * Exponential Moving Average
  */
 class ExponentialMovingAverage(val length: Int) extends LeftDoublesFunction {
@@ -33,8 +49,8 @@ class DoublesSmoothedMovingAverage(val length: Int) extends LeftDoublesFunction 
   var xma : LeftSeq[Double] = null
   var xma2 : LeftSeq[Double] = null
   def init(domain: LeftSeq[Double]) = {
-    xma = DoubleFunctions.xma(domain, length)
-    xma2 = DoubleFunctions.xma(xma, length)
+    xma = DoublesFunctions.xma(domain, length)
+    xma2 = DoublesFunctions.xma(xma, length)
   }
   def apply(domain: LeftSeq[Double]) = (2 * xma(0)) - xma2(0)  
 }
@@ -50,7 +66,7 @@ class TripleSmoothedMovingAverage(length: Int) extends DoublesSmoothedMovingAver
   var xma3 : LeftSeq[Double] = null
   override def init(domain: LeftSeq[Double]) = {
     super.init(domain)
-    xma3 = DoubleFunctions.xma(xma2, length)
+    xma3 = DoublesFunctions.xma(xma2, length)
   }
   override def apply(domain: LeftSeq[Double]) =  (3 * xma(0)) - (3 * xma2(0)) + xma3(0)
 }
@@ -119,7 +135,7 @@ class FiniteImpulseFilter6Pole(val length: Int) extends LeftDoublesFunction {
  */
 class SecondOrderMovingAverage(val length: Int) extends LeftDoublesFunction {
   var sma : LeftSeq[Double] = null
-  def init(domain: LeftSeq[Double]) = { sma = DoubleFunctions.sma(domain, length) }
+  def init(domain: LeftSeq[Double]) = { sma = DoublesFunctions.sma(domain, length) }
   def apply(domain: LeftSeq[Double]) =  {
     var slope = 0.0
     var factor = 1.0
