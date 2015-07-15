@@ -1,4 +1,5 @@
-scala-tscollection
+Scala Time-Series Collections
 ===============
-
-Scala time-series classes and functions.
+Vision:
+* 
+Planned Features:

@@ -22,7 +22,7 @@ class LeftFunctionCacheSpec extends FlatSpec with ShouldMatchers {
 
   it should "allow configuration during empty state" in {
     val d1 = new LeftArray[Double]()
-    val c1 = new LeftFunctionCache[Double](d1,new SimpleMovingAverage,3)
+    val c1 = new LeftFunctionCache(d1,new SimpleMovingAverage,3)
 
     c1.size should be (0)
     c1.toString should include ("LeftFunctionCache")
